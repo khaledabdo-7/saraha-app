@@ -87,9 +87,9 @@ export const login = async (userData) => {
 };
 
 export const verifyEmail = async (userData) => {
-  const { accessToken } = userData;
+  const { token } = userData;
   try {
-    const decodedData = jwt.verify(accessToken, process.env.JWT_SECRET);
+    const decodedData = jwt.verify(token, process.env.JWT_SECRET);
     const user = await User.findOneAndUpdate(
       { email: decodedData.email },
       { isEmailVerified: true },
