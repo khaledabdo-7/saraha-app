@@ -1,3 +1,4 @@
+import { client } from "../database/redis.connection.js";
 import BlacklistToken from "../models/blacklistToken.model.js";
 import User from "../models/user.model.js";
 import jwt from "jsonwebtoken";
@@ -19,9 +20,8 @@ export const authentication = () => {
 
       const decoded = jwt.verify(accessToken, process.env.JWT_SECRET_LOGIN);
 
-      const isTokenBlacklisted = await BlacklistToken.findOne({
-        tokenId: decoded.jti,
-      });
+      const isTokenBlacklisted = await client.get(`blacklist:${decoded.jti}`);
+
       if (isTokenBlacklisted) {
         return res.status(401).json({
           message: "Please login first",

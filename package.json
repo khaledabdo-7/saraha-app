@@ -13,13 +13,17 @@
   "type": "module",
   "dependencies": {
     "bcrypt": "^6.0.0",
+    "cloudinary": "^2.10.0",
     "crypto-js": "^4.2.0",
     "dotenv": "^17.4.2",
     "express": "^5.2.1",
+    "google-auth-library": "^10.9.0",
     "joi": "^18.2.1",
     "jsonwebtoken": "^9.0.3",
     "mongoose": "^9.6.2",
-    "nodemailer": "^8.0.7",
+    "multer": "^2.2.0",
+    "nodemailer": "^8.0.11",
+    "redis": "^6.0.1",
     "uuid": "^14.0.0"
   }
 }

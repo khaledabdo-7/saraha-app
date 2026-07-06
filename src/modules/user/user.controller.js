@@ -8,6 +8,8 @@ import {
   updatePasswordSchema,
   updateProfileSchema,
 } from "../../validation/user.validation.js";
+import { Multer } from "../../middlewares/multer.middleware.js";
+import { ImageExtensions } from "../../constants/constants.js";
 
 const userRouter = Router();
 
@@ -121,4 +123,26 @@ userRouter.patch(
     }
   },
 );
+
+
+userRouter.patch(
+  "/upload-cloud-profile",
+  authentication(),
+  Multer(ImageExtensions).single("profile"),
+  async (req, res, next) => {
+    try {
+      const { _id } = req.loggedInUser;
+      const { file } = req;
+      const data = await userService.uploadProfilePicture({ _id, file });
+      return res.status(200).json({
+        message: "Profile picture updated successfully",
+      });
+    } catch (error) {
+      next(error);
+    }
+  },
+);
+
 export default userRouter;
+
+

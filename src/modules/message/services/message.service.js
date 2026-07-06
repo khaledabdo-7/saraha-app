@@ -49,3 +49,30 @@ export const deleteMessageService = async (data) => {
 
   await Message.findByIdAndDelete(messageId);
 };
+
+
+export const uploadPicture = async (userData) => {
+  const { _id, files } = userData;
+  if (!files || files.length === 0) {
+    throw new AppError("No file uploaded", 400);
+  }
+
+  const uploadPromises = files.map((file) =>
+    cloudinary().uploader.upload(file.path, {
+      folder: `${process.env.CLOUDINARY_FOLDER}/message/media`,
+    }),
+  );
+  const uploadResults = await Promise.all(uploadPromises);
+  const imagesUrl = uploadResults.map((result) => result.secure_url);
+
+  const updatedUser = await User.findByIdAndUpdate(
+    _id,
+    { media: imagesUrl },
+    { new: true },
+  );
+
+  if (!updatedUser) {
+    throw new AppError("User not found", 404);
+  }
+  return updatedUser;
+};

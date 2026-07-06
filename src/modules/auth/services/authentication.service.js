@@ -10,6 +10,9 @@ import jwt from "jsonwebtoken";
 import { v4 as uuidv4 } from "uuid";
 import BlacklistToken from "../../../models/blacklistToken.model.js";
 import { AppError } from "../../../utils/appError.js";
+import { OAuth2Client } from "google-auth-library";
+import { provider } from "../../../constants/constants.js";
+import { client } from "../../../database/redis.connection.js";
 
 export const registerUser = async (userData) => {
   const {
@@ -148,9 +151,40 @@ export const refreshToken = async (userData) => {
   }
 };
 
-export const logoutService = async (userData) => {
-  const { accessToken, refreshToken } = userData;
+// export const logoutService = async (userData) => {
+//   const { accessToken, refreshToken } = userData;
 
+//   const getPayload = (token, secret) => {
+//     try {
+//       return jwt.verify(token, secret);
+//     } catch (error) {
+//       if (error.name === "TokenExpiredError") {
+//         return jwt.decode(token);
+//       }
+//       throw new AppError("Invalid token", 401);
+//     }
+//   };
+
+//   const decodedToken = getPayload(accessToken, process.env.JWT_SECRET_LOGIN);
+//   const decodedRefreshToken = getPayload(
+//     refreshToken,
+//     process.env.JWT_SECRET_REFRESH,
+//   );
+
+//   await BlacklistToken.insertMany([
+//     {
+//       tokenId: decodedToken.jti,
+//       expiryDate: decodedToken.exp,
+//     },
+//     {
+//       tokenId: decodedRefreshToken.jti,
+//       expiryDate: decodedRefreshToken.exp,
+//     },
+//   ]);
+// };
+
+export const logoutRedisService = async (userData) => {
+  const { accessToken, refreshToken } = userData;
   const getPayload = (token, secret) => {
     try {
       return jwt.verify(token, secret);
@@ -168,16 +202,22 @@ export const logoutService = async (userData) => {
     process.env.JWT_SECRET_REFRESH,
   );
 
-  await BlacklistToken.insertMany([
-    {
-      tokenId: decodedToken.jti,
-      expiryDate: decodedToken.exp,
-    },
-    {
-      tokenId: decodedRefreshToken.jti,
-      expiryDate: decodedRefreshToken.exp,
-    },
-  ]);
+  const nowInSeconds = Math.floor(Date.now() / 1000);
+
+  const accessTokenTTL = decodedToken.exp - nowInSeconds;
+  const refreshTokenTTL = decodedRefreshToken.exp - nowInSeconds;
+
+  if (accessTokenTTL > 0) {
+    await client.set(`blacklist:${decodedToken.jti}`, "true", {
+      EX: accessTokenTTL,
+    });
+  }
+
+  if (refreshTokenTTL > 0) {
+    await client.set(`blacklist:${decodedRefreshToken.jti}`, "true", {
+      EX: refreshTokenTTL,
+    });
+  }
 };
 
 export const forgetPassword = async (userData) => {
@@ -223,6 +263,42 @@ export const resetPassword = async (userData) => {
   await user.save();
 };
 
+export const gmailLoginService = async (idToken) => {
+  const client = OAuth2Client();
+  const ticket = await client.verifyIdToken({
+    idToken,
+    audience: process.env.CLIENT_ID,
+  });
+  const payload = ticket.getPayload();
+  const { email_verified, email, name } = payload;
+  if (!email_verified) {
+    throw new AppError("invalid email credential", 400);
+  }
+
+  const user = await User.findOne({ email, provider: provider.GOOGLE });
+  if (!user) {
+    user = await User.create({
+      username: name,
+      email,
+      provider: provider.GOOGLE,
+      isEmailVerified: true,
+    });
+  }
+
+  const accessToken = jwt.sign({ id: user._id }, process.env.JWT_SECRET_LOGIN, {
+    expiresIn: "3h",
+    jwtid: uuidv4(),
+  });
+  const refreshToken = jwt.sign(
+    { id: user._id },
+    process.env.JWT_SECRET_REFRESH,
+    {
+      expiresIn: "2d",
+      jwtid: uuidv4(),
+    },
+  );
+  return { user, accessToken, refreshToken };
+};
 // http://localhost:3007/auth/verify/${email}
 
 // {

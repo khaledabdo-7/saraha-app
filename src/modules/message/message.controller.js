@@ -6,7 +6,8 @@ import {
   sendMessageSchema,
   deleteMessageSchema,
 } from "../../validation/message.validation.js";
-
+import { Multer } from "../../middlewares/multer.middleware.js";
+import { ImageExtensions } from "../../constants/constants.js";
 const messageRouter = Router();
 
 messageRouter.post(
@@ -65,4 +66,27 @@ messageRouter.delete(
     }
   },
 );
+
+
+messageRouter.patch(
+  "/upload-cloud-media",
+  authentication(),
+  Multer(ImageExtensions).array("media"),
+  async (req, res, next) => {
+    try {
+      const { _id } = req.loggedInUser;
+      const { files } = req;
+      await messageService.uploadPicture({ _id, files });
+      return res.status(200).json({
+        message: "File uploaded successfully",
+      });
+    } catch (error) {
+      next(error);
+    }
+  },
+);
+
 export default messageRouter;
+
+
+

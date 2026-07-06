@@ -156,4 +156,21 @@ authRouter.patch(
     }
   },
 );
+
+
+authRouter.post("/google/callback", async (req, res, next) => {
+  try {
+    const { idToken } = req.body;
+    if (!idToken) {
+      throw new AppError("idToken is required in request body", 400);
+    }
+    const result = await authService.gmailLoginService(idToken);
+    return res.status(200).json({
+      message: "Logged in successfully",
+      ...result,
+    });
+  } catch (error) {
+    next(error);
+  }
+});
 export default authRouter;

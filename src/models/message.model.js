@@ -7,6 +7,7 @@ const messageSchema = new Schema(
       type: String,
       required: true,
     },
+    media : [String],
     ownerId: {
       type: Schema.Types.ObjectId,
       ref: "User",

@@ -5,6 +5,7 @@ import { compare } from "bcrypt";
 import userRouter from "./modules/user/user.controller.js";
 import { globalErrorHandler } from "./middlewares/errorHandler.middleware.js";
 import messageRouter from "./modules/message/message.controller.js";
+import { redisConnection } from "./database/redis.connection.js";
 
 export const bootstrap = async () => {
   const app = express();
@@ -12,6 +13,7 @@ export const bootstrap = async () => {
   app.use(express.json());
 
   await databaseConnection();
+  await redisConnection()
   app.use("/auth", authRouter);
   app.use("/user", userRouter);
   app.use("/message", messageRouter);

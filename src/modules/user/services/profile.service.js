@@ -6,6 +6,7 @@ import jwt from "jsonwebtoken";
 import CryptoJS from "crypto-js";
 import { AppError } from "../../../utils/appError.js";
 import { emitter } from "../../../services/sendEmail.service.js";
+import { cloudinary } from "../../../config/cloudinary.config.js";
 
 export const getProfileData = async (userData) => {
   const user = userData;
@@ -138,4 +139,26 @@ export const softDeleteUser = async (userData) => {
   user.isDeleted = true;
   await user.save();
   return user;
+};
+
+const uploadProfilePicture = async (userData) => {
+  const { _id, file } = userData;
+
+  if (!file) {
+    throw new AppError("No file uploaded", 400);
+  }
+  const uploadResult = await cloudinary().uploader.upload(file.path, {
+    folder: `${process.env.CLOUDINARY_FOLDER}/users/profile`,
+  });
+  const imageUrl = uploadResult.secure_url;
+  const updatedUser = await User.findByIdAndUpdate(_id,{
+    profileImage : imageUrl
+  },
+{new:true})
+
+if(!updatedUser){
+  throw new AppError("User not found",404);
+  
+}
+return updatedUser
 };

@@ -1,6 +1,7 @@
 import { Schema, model } from "mongoose";
 import mongoose from "mongoose";
-import { systemRoles } from "../constants/constants.js";
+import { systemRoles,provider } from "../constants/constants.js";
+
 
 const userSchema = new Schema(
   {
@@ -57,6 +58,11 @@ const userSchema = new Schema(
       enum: Object.values(systemRoles),
       default: systemRoles.USER,
     },
+    provider: {
+    type: String,
+    enum: Object.values(provider),
+    default: provider.SYSTEM,
+  },
     otp: String,
   },
   {
