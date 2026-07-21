@@ -6,15 +6,19 @@ import userRouter from "./modules/user/user.controller.js";
 import { globalErrorHandler } from "./middlewares/errorHandler.middleware.js";
 import messageRouter from "./modules/message/message.controller.js";
 import { redisConnection } from "./database/redis.connection.js";
+import { limiter } from "./middlewares/rateLimit.js";
 
 export const bootstrap = async () => {
   const app = express();
   const port = process.env.PORT;
-  app.use(express.json());
 
+  app.set("trust proxy", 1);
+  app.use(express.json());
+  
   await databaseConnection();
-  await redisConnection()
-  app.use("/auth", authRouter);
+  await redisConnection();
+  const createLimiter = limiter()
+  app.use("/auth", createLimiter,authRouter);
   app.use("/user", userRouter);
   app.use("/message", messageRouter);
 
