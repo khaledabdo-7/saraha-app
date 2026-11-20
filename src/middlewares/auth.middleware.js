@@ -44,6 +44,33 @@ export const authentication = () => {
   };
 };
 
+export const optionalAuthentication = () => {
+  return async (req, res, next) => {
+    try {
+      let accessToken;
+      if (
+        req.headers.authorization &&
+        req.headers.authorization.startsWith("Bearer ")
+      ) {
+        accessToken = req.headers.authorization.split(" ")[1];
+      }
+
+      if (!accessToken) {
+        return next();
+      }
+
+      const decoded = jwt.verify(accessToken, process.env.JWT_SECRET_LOGIN);
+      const currentUser = await User.findById(decoded.id);
+      if (currentUser) {
+        req.loggedInUser = currentUser;
+      }
+      next();
+    } catch (error) {
+      next();
+    }
+  };
+};
+
 export const authorization = (allowedRoles) => {
   return async (req, res, next) => {
     try {

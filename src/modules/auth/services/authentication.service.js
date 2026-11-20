@@ -310,3 +310,5 @@ export const gmailLoginService = async (idToken) => {
 //         "email": "kabdo5250@gmail.com"
 //     }
 // }
+
+export const logoutService = logoutRedisService;

@@ -92,11 +92,12 @@ authRouter.get("/verify/:token", async (req, res, next) => {
 
 authRouter.post("/refresh-token", async (req, res, next) => {
   try {
-    const { refreshToken } = await req.body;
+    const { refreshToken } = req.body;
     if (!refreshToken) {
       return res.status(400).json({ message: "Refresh token is required" });
     }
-    const { accessToken } = await authService.refreshToken(req.body);
+    const result = await authService.refreshToken(req.body);
+    const accessToken = typeof result === 'object' ? result.accessToken : result;
     res.status(200).json({
       message: "Token refreshed successfully",
       accessToken,

@@ -1,5 +1,6 @@
 import { databaseConnection } from "./database/connection.js";
 import express from "express";
+import cors from "cors";
 import authRouter from "./modules/auth/auth.controller.js";
 import { compare } from "bcrypt";
 import userRouter from "./modules/user/user.controller.js";
@@ -10,15 +11,24 @@ import { limiter } from "./middlewares/rateLimit.js";
 
 export const bootstrap = async () => {
   const app = express();
-  const port = process.env.PORT;
+  const port = process.env.PORT || 3000;
 
   app.set("trust proxy", 1);
+
+  // Enable CORS for frontend requests
+  app.use(cors({
+    origin: "*",
+    methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization"]
+  }));
+
   app.use(express.json());
-  
+
   await databaseConnection();
   await redisConnection();
-  const createLimiter = limiter()
-  app.use("/auth", createLimiter,authRouter);
+
+  const createLimiter = limiter();
+  app.use("/auth", createLimiter, authRouter);
   app.use("/user", userRouter);
   app.use("/message", messageRouter);
 

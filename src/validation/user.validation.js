@@ -18,13 +18,11 @@ export const updateProfileSchema = {
       .email({
         minDomainSegments: 2,
         tlds: { allow: ["com", "net"] },
-      })
-      .required(),
-    username: Joi.string().alphanum().min(3).max(30).required(),
-    displayName: Joi.string().min(1).max(30),
+      }),
+    username: Joi.string().alphanum().min(3).max(30),
+    displayName: Joi.string().min(1).max(50),
     phone: Joi.string()
-      .pattern(/^01[0125][0-9]{8}$/)
-      .required(),
+      .pattern(/^01[0125][0-9]{8}$/),
   }),
 };
 

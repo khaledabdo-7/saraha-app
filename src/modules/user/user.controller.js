@@ -38,9 +38,7 @@ userRouter.get(
   async (req, res, next) => {
     try {
       const { username } = req.params;
-      const userProfile = await userService.getPublicProfileService({
-        username,
-      });
+      const userProfile = await userService.getPublicProfileService(username);
       return res.status(200).json({ userProfile });
     } catch (error) {
       next(error);
@@ -124,7 +122,6 @@ userRouter.patch(
   },
 );
 
-
 userRouter.patch(
   "/upload-cloud-profile",
   authentication(),
@@ -144,5 +141,3 @@ userRouter.patch(
 );
 
 export default userRouter;
-
-

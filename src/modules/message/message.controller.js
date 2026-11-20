@@ -1,6 +1,6 @@
 import { Router } from "express";
 import * as messageService from "./services/message.service.js";
-import { authentication } from "../../middlewares/auth.middleware.js";
+import { authentication, optionalAuthentication } from "../../middlewares/auth.middleware.js";
 import { validationSchema } from "../../middlewares/validation.middleware.js";
 import {
   sendMessageSchema,
@@ -13,12 +13,12 @@ const messageRouter = Router();
 messageRouter.post(
   "/send-message",
   validationSchema(sendMessageSchema),
-  authentication(),
+  optionalAuthentication(),
   async (req, res, next) => {
     try {
       const messageData = {
         ...req.body,
-        senderId: req.loggedInUser._id,
+        senderId: req.loggedInUser?._id || null,
       };
       await messageService.sendMessageService(messageData);
       return res.status(201).json({
@@ -67,7 +67,6 @@ messageRouter.delete(
   },
 );
 
-
 messageRouter.patch(
   "/upload-cloud-media",
   authentication(),
@@ -87,6 +86,3 @@ messageRouter.patch(
 );
 
 export default messageRouter;
-
-
-

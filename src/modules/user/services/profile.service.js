@@ -117,7 +117,7 @@ export const updateProfileData = async (userData) => {
 export const getPublicProfileService = async (username) => {
   const user = await User.findOne({
     username: username,
-    isDeleted: false,
+    isDeleted: { $ne: true },
   }).select("username displayName profileImage");
 
   if (!user) {
