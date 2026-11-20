@@ -2,9 +2,9 @@ import Joi from "joi";
 
 export const updatePasswordSchema = {
   body: Joi.object({
-    oldPassword: Joi.string().pattern(new RegExp("^[a-zA-Z0-9]{3,30}$")),
-    newPassword: Joi.string().pattern(new RegExp("^[a-zA-Z0-9]{3,30}$")),
-    confirmedNewPassword: Joi.string().valid(Joi.ref("newPassword")),
+    oldPassword: Joi.string().min(4).max(50).required(),
+    newPassword: Joi.string().min(4).max(50).required(),
+    confirmedNewPassword: Joi.string().valid(Joi.ref("newPassword")).required(),
     refreshToken: Joi.string().required(),
   }),
   headers: Joi.object({
@@ -17,7 +17,7 @@ export const updateProfileSchema = {
     email: Joi.string()
       .email({
         minDomainSegments: 2,
-        tlds: { allow: ["com", "net"] },
+        tlds: { allow: ["com", "net", "org", "edu"] },
       }),
     username: Joi.string().alphanum().min(3).max(30),
     displayName: Joi.string().min(1).max(50),
@@ -34,8 +34,6 @@ export const getPublicProfileSchema = {
 
 export const softDeleteSchema = {
   body: Joi.object({
-    password: Joi.string()
-      .pattern(new RegExp("^[a-zA-Z0-9]{3,30}$"))
-      .required(),
+    password: Joi.string().min(4).max(50).required(),
   }),
 };
